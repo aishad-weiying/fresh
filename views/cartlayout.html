@@ -1,0 +1,274 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <title>天天生鲜-我的购物车</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/reset.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/main.css">
+
+</head>
+<body>
+<div class="header_con">
+    <div class="header">
+        <div class="welcome fl">欢迎来到天天生鲜!</div>
+        <div class="fr">
+            {{if compare .username nil }}
+                <div class="login_btn fl">
+                    <a href="/login">登录</a>
+                    <span>|</span>
+                    <a href="/register">注册</a>
+                </div>
+            {{else}}
+                <div class="login_btn fl">
+                    欢迎您：<em>{{.username}}</em>
+                    <span>|</span>
+                    <a href="/user/logout">退出</a>
+                </div>
+            {{end}}
+            <div class="user_link fl">
+                <span>|</span>
+                <a href="/user/userinfo">用户中心</a>
+                <span>|</span>
+                <a href="/user/mycart">我的购物车</a>
+                <span>|</span>
+                <a href="/user/userorder">我的订单</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="search_bar clearfix">
+    <a href="/" class="logo fl"><img src="/static/images/logo.png"></a>
+    <div class="search_con fl">
+        <form action="/goodssearch" method="post">
+            <input type="text" class="input_text fl" name="goodsname" placeholder="搜索商品">
+            <input type="submit" class="input_btn fr" name="" value="搜索">
+        </form>
+    </div>
+</div>
+{{.LayoutContent}}
+<div class="footer">
+    <div class="foot_link">
+        <a href="#">关于我们</a>
+        <span>|</span>
+        <a href="#">联系我们</a>
+        <span>|</span>
+        <a href="#">招聘人才</a>
+        <span>|</span>
+        <a href="#">友情链接</a>
+    </div>
+    <p>CopyRight © 2016 北京天天生鲜信息技术有限公司 All Rights Reserved</p>
+    <p>电话：010-****888 京ICP备*******8号</p>
+</div>
+<div class="add_jump"></div>
+
+</body>
+</html>
+
+<script type="text/javascript" src="/static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript">
+    function UpdateGoodsPrice() {
+        totalPrice = 0
+        totalNum = 0
+        // 对选中的商品循环计算
+        $('.cart_list_td').find(':checked').parents('ul').each(function () {
+            // 获取数量
+            count = $(this).find('.num_show').val()
+            // 获取单一商品的总价
+            price = $(this).children('.col07').text()
+
+            count = parseInt(count)
+            price = parseFloat(price)
+
+            // 累加
+            totalPrice += price
+            totalNum += count
+        })
+        //设置被选中的商品的总件数和总价格
+        $('.settlements').children('.col03').children('em').text(totalPrice.toFixed(2))
+        $('.settlements').children('.col03').children('b').text(totalNum)
+        $('.total_count').children('em').text(totalNum)
+    }
+
+    // 设置全选和取消全选状态
+    $('.settlements').find(':checkbox').change(function () {
+        //获取全选的checkbox的选种状态
+        is_checked = $(this).prop('checked')
+
+        //遍历商品对应的checkbox,设置这些checkbox的选中状态和全选的checkbox保持一致
+        $('.cart_list_td').find(':checkbox').each(function () {
+            $(this).prop('checked', is_checked)
+        })
+        UpdateGoodsPrice()
+    })
+
+    $('.cart_list_td').find(':checkbox').change(function () {
+        //获取所有checkbox的个数
+        checkboxLength = $('.cart_list_td').find(':checkbox').length
+        //获取选中状态的checkbox的个数
+        checkedLengtg = $('.cart_list_td').find(':checked').length
+        //如果两个个数相同，则设置全选的checkbox为选中状态，反之设置为未选中
+        if (checkboxLength > checkedLengtg) {
+            // 取消全选
+            $('.settlements').find(':checkbox').prop('checked', "")
+        } else {
+            $('.settlements').find(':checkbox').prop('checked', "checked")
+        }
+        //更新总件数和总价格
+        UpdateGoodsPrice()
+    })
+
+    // 购物车商品数量的增加
+    $('.add').click(function () {
+        //获取数量和商品id
+        count = $(this).next().val()
+        skuid = $(this).next().attr('skuid')
+        // 暂时设置ajax为同步模式
+        $.ajaxSettings.async = false
+        // 向后台发送请求
+        count = parseInt(count) + 1
+        params = {'skuid': skuid, 'count': count}
+        $.post('/user/cartUpdate', params, function (data) {
+            if (data.code == 200) {
+                updateerr = false
+            } else {
+                alert(data.msg)
+                updateerr = true
+            }
+        })
+        // 解除ajax为同步的模式，改为异步
+        $.ajaxSettings.async = true
+        if (!updateerr) {
+            $(this).next().val(count)
+            // 计算小计
+            // 获取单价和数量
+            price = $(this).parents('ul').children('.col05').text()
+            price = parseFloat(price)
+
+            amount = count * price
+            // 设置小计
+            price = $(this).parents('ul').children('.col07').text(amount.toFixed(2) + '元')
+        }
+        ischecked = $(this).parents('ul').find(':checkbox').prop('checked')
+        // 对于选中的商品，增加数量的时候，改变总价和数量
+        if (ischecked) {
+            UpdateGoodsPrice()
+        }
+    })
+
+    // 购物车商品数量的减少
+    $('.minus').click(function () {
+        //获取数量和商品id
+        count = $(this).prev().val()
+
+        // 暂时设置ajax为同步模式
+        $.ajaxSettings.async = false
+        // 向后台发送请求
+        count = parseInt(count) - 1
+        if (count < 1) {
+            count = 1
+            $(this).prev().val(count)
+            return
+        }
+        skuid = $(this).prev().attr('skuid')
+        params = {'skuid': skuid, 'count': count}
+        $.post('/user/cartUpdate', params, function (data) {
+            if (data.code == 200) {
+                updateerr = false
+            } else {
+                alert(data.msg)
+                updateerr = true
+            }
+        })
+        // 解除ajax为同步的模式，改为异步
+        $.ajaxSettings.async = true
+        if (!updateerr) {
+            $(this).prev().val(count)
+            // 计算小计
+            // 获取单价和数量
+            price = $(this).parents('ul').children('.col05').text()
+            price = parseFloat(price)
+
+            amount = count * price
+            // 设置小计
+            price = $(this).parents('ul').children('.col07').text(amount.toFixed(2) + '元')
+        }
+        ischecked = $(this).parents('ul').find(':checkbox').prop('checked')
+        // 对于选中的商品，增加数量的时候，改变总价和数量
+        if (ischecked) {
+            UpdateGoodsPrice()
+        }
+    })
+
+    // 获得焦点的事件，也就是当鼠标点击到输入框中的时候，获取输入框中的数量
+    precount = 0
+    $(this).focus(function () {
+        precount = $(this).val()
+    })
+    //手动输入商品数量,失去焦点的事件
+    $('.num_show').blur(function () {
+
+        count = $(this).val()
+        if (isNaN(count) || count.trim().length == 0 || parseInt(count) <= 0) {
+            count = precount
+            $(this).val(count)
+            return
+        }
+        skuid = $(this).attr('skuid')
+        count = parseInt(count)
+        param = {'skuid': skuid, 'count': count}
+
+        $.ajaxSettings.async = false
+        $.post('/user/cartUpdate', param, function (data) {
+            if (data.code == 200) {
+                errUpdate = false
+            } else {
+                errUpdate = true
+            }
+        })
+
+        $.ajaxSettings.async = true
+        if (!errUpdate) {
+            $(this).val(count)
+            //计算小计
+            price = $(this).parents('ul').children('.col05').text()
+            price = parseFloat(price)
+            amount = price * count
+            $(this).parents('ul').children('.col07').text(amount.toFixed(2) + '元')
+        }
+
+        isChecked = $(this).parents('ul').find(':checkbox').prop('checked')
+        if (isChecked) {
+            UpdateGoodsPrice()
+        }
+    })
+
+    // 删除指定的商品
+    $('.deletecart').click(function () {
+        // 删除的时候要发送商品的id
+        skuid = $(this).attr('skuid')
+
+        $.ajaxSettings.async = false
+        // 发送请求
+        param = {'skuid':skuid}
+        $.post('/user/cartdelete',param, function (data) {
+            if (data.code == 200) {
+                errUpdate = false
+            } else {
+                errUpdate = true
+                alert(data.msg)
+            }
+        })
+        $.ajaxSettings.async = true
+        // 如果删除成功，那么删除
+        if (!errUpdate) {
+            $(this).parents('ul').remove()
+        }
+        // 如果删除的是选中的行，那么需要刷新数量和总价
+        isChecked = $(this).parents('ul').find(':checkbox').prop('checked')
+        if (isChecked) {
+            UpdateGoodsPrice()
+        }
+    })
+</script>

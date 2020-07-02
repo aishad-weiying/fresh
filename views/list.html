@@ -1,0 +1,84 @@
+<div class="breadcrumb">
+    <a href="#">全部分类</a>
+    <span>></span>
+    <a href="#">新鲜水果</a>
+</div>
+
+<div class="main_wrap clearfix">
+    <div class="l_wrap fl clearfix">
+        <div class="new_goods">
+            <h3>新品推荐</h3>
+            <ul>
+                {{range .new2}}
+                    <li>
+                        <a href="/goodsinfo?id={{.Id}}"><img src="http://172.19.36.69/{{.Image}}"></a>
+                        <h4><a href="/goodsinfo?id={{.Id}}">{{.Name}}</a></h4>
+                        <div class="prize">￥{{.Price}}</div>
+                    </li>
+                {{end}}
+            </ul>
+        </div>
+    </div>
+
+    <div class="r_wrap fr clearfix">
+        <div class="sort_bar">
+            {{if compare .sort ""}}
+                <a href="/list?id={{.id}}" class="active">默认</a>
+                <a href="/list?id={{.id}}&sort=price">价格</a>
+                <a href="/list?id={{.id}}&sort=sale">人气</a>
+            {{else if compare .sort "price"}}
+                <a href="/list?id={{.id}}">默认</a>
+                <a href="/list?id={{.id}}&sort=price" class="active">价格</a>
+                <a href="/list?id={{.id}}&sort=sale">人气</a>
+            {{else}}
+                <a href="/list?id={{.id}}">默认</a>
+                <a href="/list?id={{.id}}&sort=price">价格</a>
+                <a href="/list?id={{.id}}&sort=sale" class="active">人气</a>
+            {{end}}
+        </div>
+
+        <ul class="goods_type_list clearfix">
+            {{range .goods}}
+                <li>
+                    <a href="/goodsinfo?id={{.Id}}"><img src="http://172.19.36.69/{{.Image}}"></a>
+                    <h4><a href="/goodsinfo?id={{.Id}}">{{.Name}}</a></h4>
+                    <div class="operate">
+                        <span class="prize">￥{{.Price}}</span>
+                        <span class="unit">{{.Price}}/{{.Unite}}</span>
+                        <a href="#" class="add_goods" title="加入购物车"></a>
+                    </div>
+                </li>
+            {{end}}
+        </ul>
+
+        <div class="pagenation">
+            {{/*下面的所有传递参数的时候，都需要传递类型id，因为控制器中要根据传递的id显示商品*/}}
+            {{/*根据传递的preIndex的值判断是否显示上一页的按钮*/}}
+            {{if compare .preIndex 0}}
+
+            {{else}}
+                <a href="/list?pageindex={{.preIndex}}&id={{$.id}}&sort={{.sort}}">上一页</a>
+            {{end}}
+            {{/*循环显示固定的五个页数*/}}
+            {{range $index,$value := .pages}}
+                {{/*只显示当前所在页的高亮*/}}
+                {{if compare $value $.pageindex }}
+                    <a href="/list?pageindex={{$value}}&id={{$.id}}&sort={{$.sort}}" class="active">{{$value}}</a>
+                {{else}}
+                    <a href="/list?pageindex={{$value}}&id={{$.id}}&sort={{$.sort}}">{{$value}}</a>
+                {{end}}
+            {{end}}
+
+            {{/*根据传递的nextIndex的值判断是否显示下一页的按钮*/}}
+            {{if compare .nextIndex -1}}
+
+            {{else}}
+                <a href="/list?pageindex={{.nextIndex}}&id={{$.id}}&sort={{.sort}}">下一页</a>
+            {{end}}
+        </div>
+    </div>
+</div>
+<script type="text/javascript" src="/static/js/jquery-1.12.2.js"></script>
+<script type="text/javascript">
+
+</script>
