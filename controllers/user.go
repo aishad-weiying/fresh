@@ -73,7 +73,7 @@ func (this *UserController) UserRegisterHandle() {
 	}
 	// 发送用于用户激活的邮件
 	// 指定发送邮件的配置信息
-	config := `{"username":"2286416563@qq.com","password":"llnoftodmbqndjhj","host":"smtp.qq.com","port":587}`
+	config := `{"username":"2286416563@qq.com","password":"授权码","host":"smtp.qq.com","port":587}`
 	// 根据配置信息，创建指定的email 对象
 	temail := utils.NewEMail(config)
 	// 通过EMAIL对象中的属性。指定，发件人邮箱，收件人邮箱，邮件标题，以及邮件的内容。
